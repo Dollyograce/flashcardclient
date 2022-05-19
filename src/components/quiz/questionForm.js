@@ -3,7 +3,7 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import { TextareaAutosize } from '@mui/material';
+import { TextareaAutosize, unsupportedProp } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
@@ -14,31 +14,34 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import {useFormik} from 'formik';
+import * as yup from 'yup';
+import axios from 'axios';
 
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const theme = createTheme();
+const validationSchema = yup.object({
+    question : yup
+    .string('Enter a question')
+    .required('Question is required'),
+    answer: yup
+    .string('Enter an answer')
+    .required('Answer is required')
+
+})
 
 export default function QuestionForm() {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
+  const formik = useFormik({
+      initialValues: {
+         question: "",
+         answer: ""
+      },
+      onSubmit: (values) => {
+         axios.post('http://localhost:8080/question/', values)
+         .then(result => {})
+      },
+      validationSchema: validationSchema
+  })
 
   return (
     <ThemeProvider theme={theme}>
@@ -58,7 +61,7 @@ export default function QuestionForm() {
           <Typography component="h1" variant="h5">
             Create Question
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={{ mt: 1 }}>
 
   
 
@@ -73,6 +76,10 @@ export default function QuestionForm() {
               multiline
               autoComplete="question"
               autoFocus
+              value={formik.values.question}
+              onChange={formik.handleChange}
+              error={formik.touched.question && Boolean (formik.errors.question)}
+              helperText={formik.touched.question && formik.errors.question}
             />
             <TextField
               margin="normal"
@@ -81,15 +88,15 @@ export default function QuestionForm() {
               name="answer"
               rows = {4}
               multiline
-              label="Quiz Answer"
-              type="answer"
+              label="Question Answer"
               id="answer"
               autoComplete="answer"
+              value={formik.values.answer}
+              onChange={formik.handleChange}
+              error={formik.touched.question && Boolean (formik.errors.answer)}
+              helperText={formik.touched.question && formik.errors.answer}
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
+            
             <Button
               type="submit"
               fullWidth
@@ -101,7 +108,6 @@ export default function QuestionForm() {
             
           </Box>
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>
   );
